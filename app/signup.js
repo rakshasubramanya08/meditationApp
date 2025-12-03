@@ -21,7 +21,11 @@ const SignUp = () => {
       Alert.alert("Validation Error", "Please fill in all fields.");
       return;
     }
-
+    if(password.length < 8){
+      Alert.alert("Validation Error", "Password must be at least 8 characters long.");
+      return;
+    }
+    
     const userDetails = { userName, email, password, token: "sample-token" };
     await AsyncStorage.setItem("userDetails", JSON.stringify(userDetails));
     console.log("User logged in:", userDetails);
