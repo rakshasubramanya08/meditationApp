@@ -1,54 +1,31 @@
+import React, { useState } from "react";
 import {
   View,
   SafeAreaView,
   Image,
+  Alert,
   TextInput,
   Text,
   TouchableOpacity,
-  StyleSheet,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Stack, useRouter } from "expo-router";
 import { COLORS, icons, SHADOWS } from "../constants";
-import { useFormik } from 'formik';
-import * as Yup from "yup";
-
-const validationSchema = Yup.object().shape({
-  email: Yup.string()
-    .email("Invalid email address")
-    .required("Email is required"),
-  password: Yup.string()
-    .min(8, "Password must be at least 8 characters")
-    .matches(/[0-9]/, "Password must contain at least one number")
-    .matches(
-      /[!@#$%^&*(),.?":{}|<>]/,
-      "Password must contain at least one special character"
-    )
-    .required("Password is required"),
-  confirmpassword: Yup.string()
-    .oneOf([Yup.ref("password"), null], "Passwords must match")
-    .required("Confirm password is required"),
-  userName: Yup.string()
-    .min(3, "UserName must be at least 3 characters")
-    .max(20, "UserName must be at most 20 characters")
-    .required("UserName is required"),
-});
-
 const SignUp = () => {
-  const formik = useFormik({
-    initialValues: {
-      email: "",
-      password: "",
-      userName: "",
-    },
-    validationSchema: validationSchema,
-    onSubmit: (values) => {
-      handleRegister(values);
-    },
-  });
+  const [userName, setUserName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const router = useRouter();
-  const handleRegister = async (values) => {
-    const { userName, email, password } = values;
+  const handleRegister = async () => {
+    if (!userName || !email || !password) {
+      Alert.alert("Validation Error", "Please fill in all fields.");
+      return;
+    }
+    if(password.length < 8){
+      Alert.alert("Validation Error", "Password must be at least 8 characters long.");
+      return;
+    }
+    
     const userDetails = { userName, email, password, token: "sample-token" };
     await AsyncStorage.setItem("userDetails", JSON.stringify(userDetails));
     console.log("User logged in:", userDetails);
@@ -97,14 +74,10 @@ const SignUp = () => {
                   borderRadius: 5,
                   marginBottom: 10,
                 }}
-                onChangeText={formik.handleChange("userName")}
-                onBlur={formik.handleBlur("userName")}
-                value={formik.values.userName}
-                placeholder="User Name"
+                value={userName}
+                onChangeText={setUserName}
+                placeholder="UserName"
               />
-              {formik.touched.userName && formik.errors.userName ? (
-                <Text style={styles.errorText}>{formik.errors.userName}</Text>
-              ) : null}
             </View>
             <View style={{ marginBottom: 10 }} testID="email">
               <TextInput
@@ -115,16 +88,13 @@ const SignUp = () => {
                   borderRadius: 5,
                   marginBottom: 10,
                 }}
-                onChangeText={formik.handleChange("email")}
-                onBlur={formik.handleBlur("email")}
-                value={formik.values.email}
+                value={email}
+                onChangeText={setEmail}
                 placeholder="Email"
               />
-              {formik.touched.email && formik.errors.email ? (
-                <Text style={styles.errorText}>{formik.errors.email}</Text>
-              ) : null}
             </View>
-            <View style={{ marginBottom: 10 }} testID="password">
+
+            <View style={{ marginBottom: 20 }} testID="password">
               <TextInput
                 style={{
                   borderColor: "#ccc",
@@ -132,33 +102,11 @@ const SignUp = () => {
                   padding: 10,
                   borderRadius: 5,
                 }}
-                onChangeText={formik.handleChange("password")}
-                onBlur={formik.handleBlur("password")}
-                value={formik.values.password}
+                value={password}
+                onChangeText={setPassword}
                 secureTextEntry={true}
                 placeholder="Password"
               />
-              {formik.touched.password && formik.errors.password ? (
-                <Text style={styles.errorText}>{formik.errors.password}</Text>
-              ) : null}
-            </View>
-            <View style={{ marginBottom: 20 }} testID="confirmpassword">
-              <TextInput
-                style={{
-                  borderColor: "#ccc",
-                  borderWidth: 1,
-                  padding: 10,
-                  borderRadius: 5,
-                }}
-                onChangeText={formik.handleChange("confirmpassword")}
-                onBlur={formik.handleBlur("confirmpassword")}
-                value={formik.values.confirmpassword}
-                secureTextEntry={true}
-                placeholder="Confirm Password"
-              />
-              {formik.touched.confirmpassword && formik.errors.confirmpassword ? (
-                <Text style={styles.errorText}>{formik.errors.confirmpassword}</Text>
-              ) : null}
             </View>
             <TouchableOpacity
               style={{
@@ -168,7 +116,7 @@ const SignUp = () => {
                 alignItems: "center",
                 marginBottom: 10,
               }}
-              onPress={formik.handleSubmit}
+              onPress={handleRegister}
               testID="handleRegister">
               <Text style={{ color: "#fff", fontWeight: "bold" }}>Sign Up</Text>
             </TouchableOpacity>
@@ -191,13 +139,5 @@ const SignUp = () => {
     </>
   );
 };
-
-const styles = StyleSheet.create({
-  errorText: {
-    color: "red",
-    fontSize: 12,
-    marginTop: 5,
-  },
-});
 
 export default SignUp;
